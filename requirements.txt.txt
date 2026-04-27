@@ -1,0 +1,6 @@
+streamlit
+FinanceDataReader
+plotly
+requests
+beautifulsoup4
+pandas
