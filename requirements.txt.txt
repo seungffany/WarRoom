@@ -1,6 +1,7 @@
 streamlit
-FinanceDataReader
+finance-datareader
 plotly
 requests
 beautifulsoup4
 pandas
+numpy
