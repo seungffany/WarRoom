@@ -6,3 +6,4 @@ beautifulsoup4
 pandas
 numpy
 lxml
+3.  **강제 재부팅**: GitHub에 Push한 후, Streamlit Cloud 대시보드에서 앱 우측의 `...` 메뉴를 눌러 **"Reboot App"**을 클릭하세요. 그래야만 바뀐 설정을 새로 읽어옵니다.
