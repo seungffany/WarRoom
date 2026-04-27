@@ -14,7 +14,6 @@ import os
 import time
 
 # --- 0. 데이터 지속성 설정 (Persistence Management) ---
-# 사용자가 추가/삭제한 종목 정보를 저장할 파일명
 SAVE_FILE = "targets_config.json"
 
 def load_settings():
@@ -43,10 +42,8 @@ st.set_page_config(page_title="STRATEGIC WAR ROOM V2", layout="wide", initial_si
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-    /* 전체 배경 및 폰트 설정 */
     .stApp { background-color: #0E1217; color: #E8EDF2; font-family: 'Roboto Mono', monospace; }
     
-    /* 헤더 디자인 */
     .header-text {
         font-family: 'Orbitron', sans-serif; text-align: center; color: #C2A56D;
         text-shadow: 0 0 15px rgba(194, 165, 109, 0.5); letter-spacing: 5px; 
@@ -55,7 +52,6 @@ st.markdown("""
     }
     .header-text h1 { font-size: 3.5rem !important; margin: 0; }
     
-    /* 섹션 컨테이너 */
     .section-container {
         border: 1px solid rgba(194, 165, 109, 0.3); padding: 25px; border-radius: 12px;
         background: rgba(26, 36, 45, 0.4); margin-bottom: 20px;
@@ -65,7 +61,6 @@ st.markdown("""
         margin-bottom: 20px; font-weight: 700; border-left: 6px solid #C2A56D; padding-left: 15px;
     }
     
-    /* 전술 브리핑 박스 */
     .ai-briefing-box {
         border: 1px solid rgba(194, 165, 109, 0.3); background: rgba(194, 165, 109, 0.05);
         padding: 20px; border-radius: 8px; min-height: 150px;
@@ -75,7 +70,6 @@ st.markdown("""
     .ai-status-bull { color: #4DFF88; font-weight: bold; }
     .ai-status-bear { color: #FF6B6B; font-weight: bold; }
     
-    /* 지표 카드 */
     .metric-card-custom {
         padding: 22px; border-radius: 10px; margin-bottom: 10px;
         border: 1px solid rgba(232, 237, 242, 0.1); background: rgba(30, 41, 51, 0.8);
@@ -83,7 +77,6 @@ st.markdown("""
     }
     .metric-card-custom:hover { transform: translateY(-3px); border-color: #C2A56D; }
     
-    /* 뉴스 티커 애니메이션 */
     .news-ticker-container {
         border-top: 1px solid #C2A56D; border-bottom: 1px solid #C2A56D;
         background: #1A242D; padding: 12px 0; overflow: hidden; white-space: nowrap; margin-bottom: 15px;
@@ -94,20 +87,17 @@ st.markdown("""
     .news-item-inline { display: inline-block; margin-right: 100px; font-size: 1.3rem; color: #E8EDF2; font-weight: 500; }
     @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
     
-    /* 뉴스 리스트 아이템 */
     .news-list-item {
         padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); color: #ccc; font-size: 1.15rem;
     }
     .news-list-item:hover { color: #C2A56D; background: rgba(255,255,255,0.02); }
     
-    /* 하단 상태 바 */
     .status-bar {
         position: fixed; bottom: 0; left: 0; width: 100%;
         background: #C2A56D; color: #121920; font-weight: 800; font-size: 16px;
         padding: 8px 25px; z-index: 1000; text-align: right;
     }
     
-    /* Streamlit 기본 UI 요소 숨김 */
     #MainMenu, footer, header {visibility: hidden;}
 </style>
 <div class="header-text"><h1>STRATEGIC ASSET COMMAND CENTER</h1></div>
@@ -158,12 +148,10 @@ all_targets = {**st.session_state.economy_targets, **st.session_state.etf_target
 # --- 3. 핵심 데이터 엔진 ---
 @st.cache_data(ttl=60)
 def fetch_data(code, days=400):
-    """지정된 티커의 가격 데이터와 기술적 지표를 수집합니다."""
     try:
         df = fdr.DataReader(code).tail(days + 60)
         if df is None or df.empty: return None
         df.columns = [c.lower() for c in df.columns]
-        # 이동평균선 계산
         df['ma20'] = df['close'].rolling(window=20).mean()
         df['ma60'] = df['close'].rolling(window=60).mean()
         return df.tail(days)
@@ -171,7 +159,6 @@ def fetch_data(code, days=400):
 
 @st.cache_data(ttl=300)
 def fetch_expanded_news():
-    """주요 경제 뉴스를 크롤링합니다."""
     news_items = []
     headers = {'User-Agent': 'Mozilla/5.0'}
     sections = [("시장", "258"), ("국제", "262")]
@@ -189,7 +176,6 @@ def fetch_expanded_news():
     except: return ["뉴스 데이터 링크 불안정. 백업 시스템 가동 중..."]
 
 def get_simple_tactical_report(market_name, ticker):
-    """지표 기반의 전술 분석 리포트를 생성합니다."""
     df = fetch_data(ticker, 10)
     if df is None: return "데이터 스캔 중... 통신 상태를 확인하십시오."
     
@@ -213,7 +199,6 @@ def get_simple_tactical_report(market_name, ticker):
     return report
 
 def get_sentiment(df):
-    """시장 심리 지수를 계산합니다."""
     if df is None or len(df) < 2: return "NEUTRAL", "#C2A56D", 50
     curr = df['close'].iloc[-1]
     ma20 = df['ma20'].iloc[-1]
@@ -232,9 +217,7 @@ def get_sentiment(df):
     elif score <= 45: return "BEARISH", "#FF9F9F", score
     return "NEUTRAL", "#C2A56D", score
 
-# --- 4. 시각적 컴포넌트 렌더러 ---
 def render_metric_card(name, df, unit):
-    """자산 지표 카드를 렌더링합니다."""
     if df is None: return
     price = df['close'].iloc[-1]
     prev = df['close'].iloc[-2]
@@ -250,8 +233,6 @@ def render_metric_card(name, df, unit):
         <div style="color:{color}; font-size:1.4rem; font-weight:700;">{"▼" if delta < 0 else "▲"} {abs(delta):.2f}%</div>
     </div>
     """, unsafe_allow_html=True)
-
-# --- 5. 대시보드 레이아웃 구성 ---
 
 # [상단] 실시간 뉴스 티커
 expanded_news = fetch_expanded_news()
@@ -370,5 +351,4 @@ if target_df is not None:
     st.plotly_chart(fig, width='stretch')
 st.markdown('</div>', unsafe_allow_html=True)
 
-# [하단] 시스템 상태 바
 st.markdown(f'<div class="status-bar">COMMAND_CENTER_ACTIVE // SYSTEM_STABILIZED // {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</div>', unsafe_allow_html=True)
